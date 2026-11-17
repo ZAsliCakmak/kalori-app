@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Kalori",
+    "slug": "kalori-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "scheme": "kaloriapp",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Barkod okutmak ve yemek fotoğrafı çekmek için kamera kullanılır."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Yemek fotoğrafı seçmek için galeri kullanılır.",
+          "cameraPermission": "Yemek fotoğrafı çekmek için kamera kullanılır."
+        }
+      ]
+    ]
+  }
+}
