@@ -144,7 +144,7 @@ export default function HomeScreen() {
             return (
               <Pressable
                 key={meal.key}
-                onPress={add}
+                onPress={() => router.navigate({ pathname: "/diary", params: { date } })}
                 className="mb-2 flex-row items-center rounded-3xl bg-pill p-4 active:opacity-70"
               >
                 <IconBubble name={meal.icon} bg="bg-white" />
@@ -152,10 +152,17 @@ export default function HomeScreen() {
                   <Text className="text-lg font-bold text-ink">{meal.label}</Text>
                   <Text className="text-xs text-slate-600">{meal.hint}</Text>
                 </View>
-                <View className="flex-row items-center rounded-full bg-white px-3 py-2">
-                  <Ionicons name="add" size={16} color={COLORS.brandDark} />
-                  <Text className="ml-1 text-sm font-bold text-brand-dark">Ekle</Text>
-                </View>
+                <Pressable
+  accessibilityRole="button"
+  onPress={(event) => {
+    event.stopPropagation();
+    add();
+  }}
+  className="flex-row items-center rounded-full bg-white px-3 py-2"
+>
+  <Ionicons name="add" size={16} color={COLORS.brandDark} />
+  <Text className="ml-1 text-sm font-bold text-brand-dark">Ekle</Text>
+</Pressable>
               </Pressable>
             );
           }
@@ -165,7 +172,7 @@ export default function HomeScreen() {
           return (
             <Pressable
               key={meal.key}
-              onPress={() => router.navigate("/diary")}
+              onPress={() => router.navigate({ pathname: "/diary", params: { date } })}
               className="mb-2 flex-row items-center rounded-3xl bg-white p-3 active:opacity-70"
             >
               {image ? (
