@@ -43,6 +43,7 @@ export type Entry = {
   carbs: number;
   fat: number;
   ai?: boolean; // AI kamera ile eklendi
+  portionBasis?: Pick<Food, "kcal" | "protein" | "carbs" | "fat">; // 100 g değerleri olmayan eski kayıtlar için
   quick?: boolean; // hızlı kalori girişi
   food?: Food; // tekrar eklemek için 100 g değerleri
 };

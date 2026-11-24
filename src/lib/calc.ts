@@ -137,6 +137,24 @@ export function fmt(n: number): string {
 }
 
 /** 64.2 → "64,2" */
+export function resizePortion(entry: Entry, grams: number) {
+  const base = entry.food ?? entry.portionBasis ?? {
+    kcal: entry.kcal * 100 / entry.grams,
+    protein: entry.protein * 100 / entry.grams,
+    carbs: entry.carbs * 100 / entry.grams,
+    fat: entry.fat * 100 / entry.grams,
+  };
+  const scale = grams / 100;
+  return {
+    grams,
+    kcal: round1(base.kcal * scale),
+    protein: round1(base.protein * scale),
+    carbs: round1(base.carbs * scale),
+    fat: round1(base.fat * scale),
+    ...(!entry.food && !entry.portionBasis ? { portionBasis: base } : {}),
+  };
+}
+
 export function fmt1(n: number): string {
   return round1(n).toFixed(1).replace(".", ",");
 }

@@ -16,13 +16,15 @@ import {
   weekOf,
 } from "@/lib/calc";
 import { useStore } from "@/lib/store";
-import { MEALS } from "@/lib/types";
+import { MEALS, type Entry } from "@/lib/types";
 
 export default function DiaryScreen() {
   const router = useRouter();
-  const { entries, exercises, goalKcal, removeEntry, addExercise, removeExercise } = useStore();
+  const { entries, exercises, goalKcal, updateGrams, removeEntry, addExercise, removeExercise } = useStore();
   const [date, setDate] = useState(todayKey());
   const [exerciseOpen, setExerciseOpen] = useState(false);
+
+  const [editing, setEditing] = useState<Entry | null>(null);
 
   const week = weekOf(date);
   const logged = useMemo(() => new Set(entries.map((e) => e.date)), [entries]);
@@ -119,12 +121,22 @@ export default function DiaryScreen() {
                       {e.name}
                     </Text>
                     <Text className="text-xs text-slate-600" numberOfLines={1}>
-                      {e.quick ? "Hızlı giriş" : `${Math.round(e.grams)} g`}
+                      {e.quick ? "Hızlı giriş" : `${String(e.grams).replace(".", ",")} g`}
                       {e.ai ? " • AI tarama" : ""} • P {Math.round(e.protein)}g • K {Math.round(e.carbs)}g • Y{" "}
                       {Math.round(e.fat)}g
                     </Text>
                   </View>
                   <Text className="mx-2 text-sm font-bold text-ink">{fmt(e.kcal)} kcal</Text>
+                  {!e.quick && e.grams > 0 && (
+                    <Pressable
+                      onPress={() => setEditing(e)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${e.name} gramını düzenle`}
+                      className="mr-2 p-2"
+                    >
+                      <Ionicons name="pencil-outline" size={18} color={COLORS.brandDark} />
+                    </Pressable>
+                  )}
                   <Pressable onPress={() => removeEntry(e.id)} hitSlop={10}>
                     <Ionicons name="trash-outline" size={18} color="#94a3b8" />
                   </Pressable>
@@ -175,6 +187,19 @@ export default function DiaryScreen() {
         </View>
       </ScrollView>
 
+      <FormModal
+        visible={editing !== null}
+        title={editing?.name ?? "Gram düzenle"}
+        fields={[{
+          key: "grams", label: "Yeni miktar", unit: "g", numeric: true, required: true,
+          validate: (s) => /^\d+(?:[.,]\d)?$/.test(s) && Number.isFinite(Number(s.replace(",", "."))) && parseNum(s) > 0,
+        }]}
+        initial={{ grams: String(editing?.grams ?? "").replace(".", ",") }}
+        onClose={() => setEditing(null)}
+        onSubmit={({ grams }) => {
+          if (editing) updateGrams(editing, parseNum(grams));
+        }}
+      />
       <FormModal
         visible={exerciseOpen}
         title="Egzersiz ekle"
