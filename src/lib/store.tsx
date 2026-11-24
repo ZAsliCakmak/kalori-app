@@ -35,6 +35,7 @@ export const DEFAULT_PROFILE: Profile = {
 
 type Store = {
   ready: boolean;
+  diaryReady: boolean;
   profile: Profile;
   goalKcal: number;
   entries: Entry[];
@@ -84,6 +85,8 @@ function FirebaseStore({ children }: { children: React.ReactNode }) {
   const [uid, setUid] = useState<string | null>(null);
   const [userLoaded, setUserLoaded] = useState(false);
   const [entriesLoaded, setEntriesLoaded] = useState(false);
+  const [exercisesLoaded, setExercisesLoaded] = useState(false);
+  const [weightsLoaded, setWeightsLoaded] = useState(false);
   const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
   const [favorites, setFavorites] = useState<Food[]>([]);
   const [water, setWater] = useState<Record<string, number>>({});
@@ -133,20 +136,24 @@ function FirebaseStore({ children }: { children: React.ReactNode }) {
       ),
       onSnapshot(
         collection(db, "users", uid, "exercises"),
-        (snap) =>
+        (snap) => {
           setExercises(
             snap.docs.map((x) => ({ ...(x.data() as Omit<Exercise, "id">), id: x.id })).sort(byId)
-          ),
+          );
+          setExercisesLoaded(true);
+        },
         fail
       ),
       onSnapshot(
         collection(db, "users", uid, "weights"),
-        (snap) =>
+        (snap) => {
           setWeights(
             snap.docs
               .map((x) => x.data() as WeightLog)
               .sort((a, b) => a.date.localeCompare(b.date))
-          ),
+          );
+          setWeightsLoaded(true);
+        },
         fail
       ),
     ];
@@ -226,6 +233,7 @@ function FirebaseStore({ children }: { children: React.ReactNode }) {
   const value = useMemo<Store>(
     () => ({
       ready: userLoaded && entriesLoaded,
+      diaryReady: userLoaded && entriesLoaded && exercisesLoaded && weightsLoaded,
       profile,
       goalKcal: dailyGoal(profile),
       entries,
@@ -245,7 +253,7 @@ function FirebaseStore({ children }: { children: React.ReactNode }) {
       saveProfile,
     }),
     [
-      userLoaded, entriesLoaded, profile, entries, exercises, weights, water, favorites,
+      userLoaded, entriesLoaded, exercisesLoaded, weightsLoaded, profile, entries, exercises, weights, water, favorites,
       selectedFood, addEntry, removeEntry, addExercise, removeExercise, logWeight,
       addWater, toggleFavorite, saveProfile,
     ]
