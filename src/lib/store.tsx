@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
-import { collection, deleteDoc, doc, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import React, {
   createContext,
   useCallback,
@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 import { Text, View } from "react-native";
-import { dailyGoal, todayKey } from "./calc";
+import { dailyGoal, resizePortion, todayKey } from "./calc";
 import { isFirebaseConfigured } from "./firebaseConfig";
 import { Entry, Exercise, Food, Profile, WeightLog } from "./types";
 
@@ -45,6 +45,7 @@ type Store = {
   selectedFood: Food | null;
   selectFood: (f: Food | null) => void;
   addEntry: (e: Omit<Entry, "id">) => void;
+  updateGrams: (entry: Entry, grams: number) => void;
   removeEntry: (id: string) => void;
   addExercise: (e: Omit<Exercise, "id">) => void;
   removeExercise: (id: string) => void;
@@ -161,6 +162,14 @@ function FirebaseStore({ children }: { children: React.ReactNode }) {
     [uid, db, fail]
   );
 
+  const updateGrams = useCallback(
+    (entry: Entry, grams: number) => {
+      if (!uid || entry.quick || !(entry.grams > 0) || !Number.isFinite(grams) || grams <= 0) return;
+      updateDoc(doc(db, "users", uid, "entries", entry.id), resizePortion(entry, grams)).catch(fail);
+    },
+    [uid, db, fail]
+  );
+
   const removeEntry = useCallback(
     (id: string) => {
       if (!uid) return;
@@ -236,6 +245,7 @@ function FirebaseStore({ children }: { children: React.ReactNode }) {
       selectedFood,
       selectFood,
       addEntry,
+      updateGrams,
       removeEntry,
       addExercise,
       removeExercise,

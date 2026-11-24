@@ -16,6 +16,7 @@ export type Field = {
   numeric?: boolean;
   placeholder?: string;
   required?: boolean;
+  validate?: (text: string) => boolean;
 };
 
 /** Küçük formlar için alttan açılan pencere (kilo, egzersiz, hızlı kalori vb.). */
@@ -42,7 +43,10 @@ export function FormModal({
     if (visible) setValues(initial ?? {});
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const valid = fields.every((f) => !f.required || (values[f.key] ?? "").trim().length > 0);
+  const valid = fields.every((field) => {
+    const text = (values[field.key] ?? "").trim();
+    return (!field.required || text.length > 0) && (field.validate?.(text) ?? true);
+  });
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
