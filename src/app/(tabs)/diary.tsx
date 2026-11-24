@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { FormModal } from "@/components/FormModal";
@@ -21,7 +21,9 @@ import { MEALS } from "@/lib/types";
 export default function DiaryScreen() {
   const router = useRouter();
   const { entries, exercises, goalKcal, removeEntry, addExercise, removeExercise } = useStore();
-  const [date, setDate] = useState(todayKey());
+  const { date: selectedDate } = useLocalSearchParams<{ date?: string }>();
+  const date = selectedDate ?? todayKey();
+  const setDate = (nextDate: string) => router.setParams({ date: nextDate });
   const [exerciseOpen, setExerciseOpen] = useState(false);
 
   const week = weekOf(date);
