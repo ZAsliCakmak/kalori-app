@@ -33,7 +33,8 @@
           "photosPermission": "Yemek fotoğrafı seçmek için galeri kullanılır.",
           "cameraPermission": "Yemek fotoğrafı çekmek için kamera kullanılır."
         }
-      ]
+      ],
+      "expo-sharing"
     ]
   }
 }

@@ -1,18 +1,51 @@
 import { Ionicons } from "@expo/vector-icons";
+import { File, Paths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { FormModal } from "@/components/FormModal";
 import { COLORS, Card, Screen, TabHeader } from "@/components/ui";
 import { MACRO_SPLIT, fmt, fmt1, macroTargets, parseNum, streak, tdee } from "@/lib/calc";
+import { diaryCsv } from "@/lib/diaryCsv";
 import { useStore } from "@/lib/store";
 import { GOALS } from "@/lib/types";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile, entries, goalKcal, saveProfile, logWeight } = useStore();
+  const store = useStore();
+  const { profile, entries, goalKcal, saveProfile, logWeight } = store;
+  const [exporting, setExporting] = useState(false);
   const [nameOpen, setNameOpen] = useState(false);
   const [weightOpen, setWeightOpen] = useState(false);
+
+  async function exportDiary() {
+    if (exporting || !store.diaryReady) return;
+    setExporting(true);
+    try {
+      const csv = diaryCsv(store);
+      if (!csv) {
+        Alert.alert("Günlük boş", "Dışa aktarmak için önce bir kayıt ekle.");
+        return;
+      }
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert("Dosya paylaşımı bu cihazda kullanılamıyor.");
+        return;
+      }
+      const file = new File(Paths.cache, `kalori-gunlugu-${Date.now()}.csv`);
+      file.create();
+      file.write(csv);
+      await Sharing.shareAsync(file.uri, {
+        mimeType: "text/csv",
+        UTI: "public.comma-separated-values-text",
+        dialogTitle: "Günlüğü CSV olarak paylaş",
+      });
+    } catch {
+      Alert.alert("CSV dışa aktarılamadı", "Tekrar dene.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const targets = macroTargets(goalKcal);
   const delta = goalKcal - tdee(profile);
@@ -123,6 +156,18 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={18} color={COLORS.ink} />
           </Pressable>
         </Card>
+
+        <Pressable
+          accessibilityRole="button"
+          disabled={!store.diaryReady || exporting}
+          onPress={exportDiary}
+          className="mt-3 h-12 flex-row items-center justify-center rounded-full bg-pill"
+        >
+          <Ionicons name="download-outline" size={18} color={COLORS.ink} />
+          <Text className="ml-2 text-sm font-bold text-ink">
+            {!store.diaryReady ? "Kayıtlar yükleniyor…" : exporting ? "CSV hazırlanıyor…" : "Günlüğü CSV olarak dışa aktar"}
+          </Text>
+        </Pressable>
 
         <Text className="mt-5 text-center text-xs text-slate-500">
           Kalori v1.0 • Besin verisi: Open Food Facts
